@@ -25,11 +25,24 @@ Users may also have a custom auditing solution by implementing the defined `Audi
 ### When to use li-apache-kafka-clients ###
 li-apache-kafka-clients is a wrapper library on top of vanilla Kafka Java clients. If one does not need the additional functions provided by li-apache-kafka-clients, the vanilla Kafka Java clients should be preferred.
 
+### Adding the Repository to Your Build ###
+```gradle
+repositories {
+    maven {
+        url "https://linkedin.jfrog.io/linkedin/li-apache-kafka-clients"
+    }
+}
+
+dependencies {
+    compile(group: 'com.linkedin.kafka.clients', name: 'li-apache-kafka-clients', version: '0.0.4')
+}
+```
+
 ### Build a jar and run all the unit tests ###
 `./gradlew build`
 
 ### Handle large messages with li-apache-kafka-clients ###
-Large messages are the messages whose size are greater than the maximum acceptable message size on the broker. li-apache-kafka-clients handles large messages by splitting each large message into segments in LiKafkaProducer and reassembling the segments back into the original large message in LiKafkaConsumer. 
+Large messages are the messages whose size are greater than the maximum acceptable message size on the broker. li-apache-kafka-clients handles large messages by splitting each large message into segments in LiKafkaProducer and reassembling the segments back into the original large message in LiKafkaConsumer.
 
 li-apache-kafka-clients is designed to handle **sporadic** large messages. If the users expect to have a high percentage of large messages (e.g. >50%), the users may want to consider **reference-based-messaging** which is also described in the slides below.
 
@@ -42,7 +55,7 @@ large.message.enabled
 max.message.segment.bytes
 segment.serializer
 ```
-If `large.message.enabled=true`, `LiKafkaProducerImpl` will split the messages whose serialized size is greater than `max.message.segment.bytes` into multiple `LargeMessageSegment`, serialize each `LargeMessageSegment` with the specified `segment.serializer` and send the serialized segments to Kafka brokers. 
+If `large.message.enabled=true`, `LiKafkaProducerImpl` will split the messages whose serialized size is greater than `max.message.segment.bytes` into multiple `LargeMessageSegment`, serialize each `LargeMessageSegment` with the specified `segment.serializer` and send the serialized segments to Kafka brokers.
 
 * When `large.message.enabled=false` or a message is a normal sized message, `LiKafkaProducerImpl` will still send the message as a single-segment message. This is to make sure that the consumers will always be able to deserialize the messages regardless of the producer settings. However, with a custom `segment.serializer` users are able to use any wire protocols for the large message segments, including sending a normal-sized message without wrapping it with a large message segment.
 
