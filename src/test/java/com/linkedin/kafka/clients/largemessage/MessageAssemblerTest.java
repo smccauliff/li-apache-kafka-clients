@@ -5,7 +5,7 @@
 package com.linkedin.kafka.clients.largemessage;
 
 import com.linkedin.kafka.clients.consumer.ExtensibleConsumerRecord;
-import com.linkedin.kafka.clients.utils.HeaderKeySpace;
+import com.linkedin.kafka.clients.utils.HeaderUtils;
 import org.apache.kafka.common.TopicPartition;
 import org.testng.annotations.Test;
 
@@ -27,7 +27,7 @@ public class MessageAssemblerTest {
     LargeMessageSegment largeMessageSegment = new LargeMessageSegment(UUID.randomUUID(), 0, 1, messageBytes.length, true, ByteBuffer.wrap(messageBytes));
     ExtensibleConsumerRecord<byte[], byte[]> consumerRecord =
         new ExtensibleConsumerRecord<byte[], byte[]>("topic", 0, 0, 0, null, 0, 0, 0, "key".getBytes(), messageBytes);
-    consumerRecord.header(HeaderKeySpace.LARGE_MESSAGE_SEGMENT_HEADER, largeMessageSegment.segmentHeader());
+    consumerRecord.header(HeaderUtils.LARGE_MESSAGE_SEGMENT_HEADER, largeMessageSegment.segmentHeader());
     MessageAssembler messageAssembler = new MessageAssemblerImpl(100, 100, true);
     MessageAssembler.AssembleResult assembleResult =
         messageAssembler.assemble(new TopicPartition("topic", 0), 0, consumerRecord);

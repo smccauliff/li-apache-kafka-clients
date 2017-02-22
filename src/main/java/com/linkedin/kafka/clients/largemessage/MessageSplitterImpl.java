@@ -4,7 +4,7 @@
 
 package com.linkedin.kafka.clients.largemessage;
 
-import com.linkedin.kafka.clients.utils.HeaderKeySpace;
+import com.linkedin.kafka.clients.utils.HeaderUtils;
 import com.linkedin.kafka.clients.producer.ExtensibleProducerRecord;
 import com.linkedin.kafka.clients.utils.LiKafkaClientsUtils;
 import com.linkedin.kafka.clients.utils.UUIDFactory;
@@ -69,7 +69,7 @@ public class MessageSplitterImpl<K, V> implements MessageSplitter<K, V> {
       ExtensibleProducerRecord<byte[], byte[]> segmentProducerRecord =
         new ExtensibleProducerRecord<>(originalRecord.topic(), originalRecord.partition(), originalRecord.timestamp(), key, segment.segmentArray());
       segmentProducerRecord.copyHeadersFrom(originalRecord);
-      segmentProducerRecord.header(HeaderKeySpace.LARGE_MESSAGE_SEGMENT_HEADER, segment.segmentHeader());
+      segmentProducerRecord.header(HeaderUtils.LARGE_MESSAGE_SEGMENT_HEADER, segment.segmentHeader());
       segments.add(segmentProducerRecord);
     }
 

@@ -2,9 +2,8 @@
  * Copyright 2017 LinkedIn Corp. Licensed under the BSD 2-Clause License (the "License").
  * See License in the project root for license information.
  */
-package com.linkedin.kafka.clients.consumer;
+package com.linkedin.kafka.clients.utils;
 
-import com.linkedin.kafka.clients.utils.DefaultHeaderDeserializer;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -14,6 +13,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiConsumer;
 
 
 /**
@@ -24,7 +24,6 @@ import java.util.Set;
  *
  */
 public class LazyHeaderListMap implements Map<String,byte[]> {
-
 
   private static final class Entry implements Map.Entry<String, byte[]> {
     private final String key;
@@ -58,9 +57,9 @@ public class LazyHeaderListMap implements Map<String,byte[]> {
     }
   };
 
-  private List<Map.Entry<String, byte[]>> backingList;
+  private List<Map.Entry<String, byte[]>> _backingList;
 
-  private ByteBuffer headerSource;
+  private ByteBuffer _headerSource;
 
   public LazyHeaderListMap() {
     this((ByteBuffer) null);
@@ -70,35 +69,36 @@ public class LazyHeaderListMap implements Map<String,byte[]> {
     if (other instanceof LazyHeaderListMap) {
       LazyHeaderListMap otherLazyHeaderListMap = (LazyHeaderListMap) other;
       otherLazyHeaderListMap.lazyInit();
-      this.backingList = new ArrayList<>(otherLazyHeaderListMap.backingList);
+      this._backingList = new ArrayList<>(otherLazyHeaderListMap._backingList);
     } else {
-      this.backingList = new ArrayList<>(other.size());
-      this.backingList.addAll(other.entrySet());
+      this._backingList = new ArrayList<>(other.size());
+      this._backingList.addAll(other.entrySet());
     }
   }
 
   /**
-   * When the map is accessed then headerSource is parsed.
+   * When the map is accessed then _headerSource is parsed.
    *
    * @param headerSource  this may be null in which case there are not any headers.
    */
   public LazyHeaderListMap(ByteBuffer headerSource) {
-    this.headerSource = headerSource;
+    this._headerSource = headerSource;
   }
 
   private void lazyInit() {
-    if (backingList != null) {
+    if (_backingList != null) {
       return;
     }
-    if (headerSource == null) {
+    if (_headerSource == null) {
       //Not using empty list so that this map remains mutable
-      backingList = new ArrayList<>(0);
+      _backingList = new ArrayList<>(0);
       return;
     }
 
-    backingList = new ArrayList<>();
-    DefaultHeaderDeserializer.parseHeader(headerSource, this);
-    headerSource = null;
+    _backingList = new ArrayList<>();
+    BiConsumer<String, byte[]> initializer = (k, v) -> _backingList.add(new Entry(k, v));
+    DefaultHeaderDeserializer.parseHeader(_headerSource, initializer);
+    _headerSource = null;
 
     assert checkDuplicates();
   }
@@ -109,8 +109,8 @@ public class LazyHeaderListMap implements Map<String,byte[]> {
    * @return true if we are duplicate free.
    */
   private boolean checkDuplicates() {
-    Set<String> keysSeen = new HashSet<>(backingList.size() * 2);
-    for (Map.Entry<String, byte[]> entry  : backingList) {
+    Set<String> keysSeen = new HashSet<>(_backingList.size() * 2);
+    for (Map.Entry<String, byte[]> entry  : _backingList) {
       if (keysSeen.contains(entry.getKey())) {
         return false;
       }
@@ -123,20 +123,20 @@ public class LazyHeaderListMap implements Map<String,byte[]> {
   public int size() {
     lazyInit();
 
-    return backingList.size();
+    return _backingList.size();
   }
 
   @Override
   public boolean isEmpty() {
     lazyInit();
-    return backingList.isEmpty();
+    return _backingList.isEmpty();
   }
 
   @Override
   public boolean containsKey(Object key) {
     lazyInit();
-    for (int i = backingList.size() - 1; i >= 0; i--) {
-      if (backingList.get(i).getKey().equals(key)) {
+    for (int i = _backingList.size() - 1; i >= 0; i--) {
+      if (_backingList.get(i).getKey().equals(key)) {
         return true;
       }
     }
@@ -155,9 +155,9 @@ public class LazyHeaderListMap implements Map<String,byte[]> {
   public byte[] get(Object key) {
     lazyInit();
 
-    for (int i = 0;  i < backingList.size(); i++) {
-      if (backingList.get(i).getKey().equals(key)) {
-        return backingList.get(i).getValue();
+    for (int i = 0;  i < _backingList.size(); i++) {
+      if (_backingList.get(i).getKey().equals(key)) {
+        return _backingList.get(i).getValue();
       }
     }
     return null;
@@ -181,14 +181,14 @@ public class LazyHeaderListMap implements Map<String,byte[]> {
       throw new IllegalArgumentException("null values are not supported.");
     }
 
-    for (int i = 0; i < backingList.size(); i++) {
-      if (backingList.get(i).getKey().equals(key)) {
-        byte[] previousValue = backingList.get(i).getValue();
-        backingList.set(i, new Entry(key, value));
+    for (int i = 0; i < _backingList.size(); i++) {
+      if (_backingList.get(i).getKey().equals(key)) {
+        byte[] previousValue = _backingList.get(i).getValue();
+        _backingList.set(i, new Entry(key, value));
         return previousValue;
       }
     }
-    backingList.add(new Entry(key, value));
+    _backingList.add(new Entry(key, value));
     return null;
   }
 
@@ -205,12 +205,12 @@ public class LazyHeaderListMap implements Map<String,byte[]> {
     if (key == null) {
       throw new IllegalStateException("key must not be null");
     }
-    for (int i = 0; i < backingList.size(); i++) {
-      if (backingList.get(i).getKey().equals(key)) {
-        int lastIndex = backingList.size() - 1;
-        byte[] value = backingList.get(i).getValue();
-        backingList.set(i , backingList.get(lastIndex));
-        backingList.remove(lastIndex);
+    for (int i = 0; i < _backingList.size(); i++) {
+      if (_backingList.get(i).getKey().equals(key)) {
+        int lastIndex = _backingList.size() - 1;
+        byte[] value = _backingList.get(i).getValue();
+        _backingList.set(i , _backingList.get(lastIndex));
+        _backingList.remove(lastIndex);
         return value;
       }
     }
@@ -227,7 +227,7 @@ public class LazyHeaderListMap implements Map<String,byte[]> {
   @Override
   public void clear() {
     lazyInit();
-    backingList = new ArrayList<>(0);
+    _backingList = new ArrayList<>(0);
   }
 
   @Override
@@ -238,12 +238,12 @@ public class LazyHeaderListMap implements Map<String,byte[]> {
 
       @Override
       public int size() {
-        return backingList.size();
+        return _backingList.size();
       }
 
       @Override
       public boolean isEmpty() {
-        return backingList.isEmpty();
+        return _backingList.isEmpty();
       }
 
       @Override
@@ -255,36 +255,36 @@ public class LazyHeaderListMap implements Map<String,byte[]> {
       public Iterator<String> iterator() {
 
         return new Iterator<String>() {
-          final int backingListSizeAtInitializationTime = backingList.size();
+          final int backingListSizeAtInitializationTime = _backingList.size();
           int nextIndex = 0;
 
           @Override
           public boolean hasNext() {
-            if (backingList.size() != backingListSizeAtInitializationTime) {
+            if (_backingList.size() != backingListSizeAtInitializationTime) {
               throw new ConcurrentModificationException();
             }
 
-            return nextIndex < backingList.size();
+            return nextIndex < _backingList.size();
           }
 
           @Override
           public String next() {
-            if (backingList.size() != backingListSizeAtInitializationTime) {
+            if (_backingList.size() != backingListSizeAtInitializationTime) {
               throw new ConcurrentModificationException();
             }
-            return backingList.get(nextIndex++).getKey();
+            return _backingList.get(nextIndex++).getKey();
           }
         };
       }
 
       @Override
       public Object[] toArray() {
-        return backingList.toArray(new Object[backingList.size()]);
+        return _backingList.toArray(new Object[_backingList.size()]);
       }
 
       @Override
       public <T> T[] toArray(T[] a) {
-        return backingList.toArray(a);
+        return _backingList.toArray(a);
       }
 
       @Override
@@ -329,7 +329,7 @@ public class LazyHeaderListMap implements Map<String,byte[]> {
 
       @Override
       public void clear() {
-        backingList.clear();
+        _backingList.clear();
       }
     };
   }
@@ -341,12 +341,12 @@ public class LazyHeaderListMap implements Map<String,byte[]> {
 
       @Override
       public int size() {
-        return backingList.size();
+        return _backingList.size();
       }
 
       @Override
       public boolean isEmpty() {
-        return backingList.isEmpty();
+        return _backingList.isEmpty();
       }
 
       @Override
@@ -357,24 +357,24 @@ public class LazyHeaderListMap implements Map<String,byte[]> {
       @Override
       public Iterator<byte[]> iterator() {
         return new Iterator<byte[]>() {
-          final int backingListSizeAtInitializationTime = backingList.size();
+          final int backingListSizeAtInitializationTime = _backingList.size();
           private int index = 0;
 
           @Override
           public boolean hasNext() {
-            if (backingListSizeAtInitializationTime != backingList.size()) {
+            if (backingListSizeAtInitializationTime != _backingList.size()) {
               throw new ConcurrentModificationException();
             }
-            return index < backingList.size();
+            return index < _backingList.size();
           }
 
           @Override
           public byte[] next() {
-            if (backingListSizeAtInitializationTime != backingList.size()) {
+            if (backingListSizeAtInitializationTime != _backingList.size()) {
               throw new ConcurrentModificationException();
             }
 
-            return backingList.get(index++).getValue();
+            return _backingList.get(index++).getValue();
           }
         };
       }

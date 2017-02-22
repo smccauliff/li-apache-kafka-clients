@@ -18,6 +18,7 @@ import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static com.linkedin.kafka.clients.utils.DefaultHeaderSerde.utf8StringLength;
 
 public class DefaultHeaderSerializerTest {
   private static final char UNICODE_REPLACEMENT_CHARACTER = 65533;
@@ -70,5 +71,23 @@ public class DefaultHeaderSerializerTest {
     assertFalse(deserializeResult.value().hasRemaining());
     assertEquals(deserializeResult.headers().size(), 1);
     assertEquals(deserializeResult.headers().get(headerKey), headerValue.getBytes());
+  }
+
+  @Test
+  public void utf8LengthTest() {
+    assertEquals(utf8StringLength(""), 0);
+    assertEquals(utf8StringLength("\0"), 1);
+    assertEquals(utf8StringLength("a"), 1);
+    assertEquals(utf8StringLength("\u007f"), 1);
+    assertEquals(utf8StringLength("\u0080"), 2);
+    assertEquals(utf8StringLength("\u07FF"), 2);
+    assertEquals(utf8StringLength("\u0800"), 3);
+    assertEquals(utf8StringLength("\uFFFF"), 3);
+    String startSupplemental = new String(new int[] { 0x10000}, 0, 1);
+    String endSupplemental = new String(new int[] { 0x10FFFF}, 0, 1);
+    assertEquals(utf8StringLength(startSupplemental), 4);
+    assertEquals(utf8StringLength(endSupplemental), 4);
+    String doughnut = new String(new int[] { 0x1F369}, 0, 1);
+    assertEquals(utf8StringLength(doughnut), 4);
   }
 }

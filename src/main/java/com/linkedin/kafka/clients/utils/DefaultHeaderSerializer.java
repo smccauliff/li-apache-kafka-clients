@@ -59,10 +59,10 @@ public class DefaultHeaderSerializer implements HeaderSerializer, DefaultHeaderS
 
     int startPosition = dest.position();
     for (Map.Entry<String, byte[]> header : headers.entrySet()) {
-      HeaderKeySpace.validateHeaderKey(header.getKey());
+      HeaderUtils.validateHeaderKey(header.getKey());
       String key = header.getKey();
       int keySize = DefaultHeaderSerde.utf8StringLength(key);
-      if (keySize > HeaderKeySpace.MAX_KEY_LENGTH) {
+      if (keySize > HeaderUtils.MAX_KEY_LENGTH) {
         throw new IllegalArgumentException("Header key \"" + key + "\" is too long.");
       }
       dest.put((byte) keySize);

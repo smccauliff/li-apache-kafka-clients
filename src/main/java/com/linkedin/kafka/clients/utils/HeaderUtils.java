@@ -5,9 +5,9 @@ package com.linkedin.kafka.clients.utils;
 /**
  * Header key related constants and utilities.
  */
-public class HeaderKeySpace {
+public class HeaderUtils {
 
-  private HeaderKeySpace() {
+  private HeaderUtils() {
     //This does nothing
   }
 

@@ -5,7 +5,7 @@
 package com.linkedin.kafka.clients.largemessage;
 
 import com.linkedin.kafka.clients.largemessage.errors.InvalidSegmentException;
-import com.linkedin.kafka.clients.utils.HeaderKeySpace;
+import com.linkedin.kafka.clients.utils.HeaderUtils;
 import java.nio.ByteBuffer;
 import java.util.UUID;
 
@@ -86,7 +86,7 @@ public class LargeMessageSegment {
    * This constructor should be used when consuming a record from the broker.
    *
    * @param headerPayload non-null, this was originally generated from the producer side.  This is stored in the header
-   *                      map with key {@value HeaderKeySpace#LARGE_MESSAGE_SEGMENT_HEADER}
+   *                      map with key {@value HeaderUtils#LARGE_MESSAGE_SEGMENT_HEADER}
    * @param segment the bytes for this segment
    */
   public LargeMessageSegment(byte[] headerPayload, ByteBuffer segment) {

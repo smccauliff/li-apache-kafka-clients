@@ -4,7 +4,7 @@
  */
 package com.linkedin.kafka.clients.producer;
 
-import com.linkedin.kafka.clients.utils.HeaderKeySpace;
+import com.linkedin.kafka.clients.utils.HeaderUtils;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -20,8 +20,9 @@ import org.apache.kafka.clients.producer.ProducerRecord;
  * {@link com.linkedin.kafka.clients.consumer.LiKafkaConsumer} then the consumer records will not be deserializable.
  * True null values can not be sent in the presence of any headers.
  * </p>
- * <p>{@link com.linkedin.kafka.clients.utils.HeaderKeySpace} contains suggestions for how to partition the header key into
- * intervals.  Header keys must be non-negative.  Headers live in a separate space from the underlying Kafka protocol.
+ * <p>{@link HeaderUtils} contains suggestions for how to partition the header key into
+ * intervals.  Header keys must be non-null, non-zero length strings that can be encoded into a utf-8 string.  Headers
+ * live in a separate space from the underlying Kafka protocol.
  * </p>
  * <p> A header can be added to a producer record by calling {@link #header(String, byte[])}.  This implies that the
  * user of the producer record should not modify the record after
@@ -47,12 +48,12 @@ public class ExtensibleProducerRecord<K, V> extends ProducerRecord<K, V> {
   }
 
   /**
-   * Gets the value associated with the header key from this record.
-   * @param headerKey
+   * Gets the value associated with the header key from this record.  This method is not thread safe.
+   * @param headerKey non-null, non-zero length string that can be encoded into a utf-8 string
    * @return returns null if this record does not have headers of the header is not present
    */
   public byte[] header(String headerKey) {
-    HeaderKeySpace.validateHeaderKey(headerKey);
+    HeaderUtils.validateHeaderKey(headerKey);
 
     if (headers == null) {
       return null;
@@ -62,11 +63,11 @@ public class ExtensibleProducerRecord<K, V> extends ProducerRecord<K, V> {
 
   /**
    * Adds or updates the value associated with the header key.  This method is not thread safe.
-   * @param headerKey non-negative
+   * @param headerKey non-null, non-zero length string that can be encoded into a utf-8 string
    * @param headerValue non-null
    */
   public void header(String headerKey, byte[] headerValue) {
-    HeaderKeySpace.validateHeaderKey(headerKey);
+    HeaderUtils.validateHeaderKey(headerKey);
 
     if (headerValue == null) {
       throw new IllegalArgumentException("Header value must not be null.");
@@ -90,7 +91,7 @@ public class ExtensibleProducerRecord<K, V> extends ProducerRecord<K, V> {
 
   /**
    * A set of the header keys currently associated with this record.  This method is not thread safe.
-   * @return non-null
+   * @return non-null set of of header keys.
    */
   public Set<String> headerKeys() {
     if (headers == null) {

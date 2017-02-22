@@ -4,14 +4,14 @@
  */
 package com.linkedin.kafka.clients.utils;
 
-import com.linkedin.kafka.clients.consumer.LazyHeaderListMap;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.CharsetDecoder;
-import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CoderResult;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.function.BiConsumer;
+
 
 /**
  * This works with {@link DefaultHeaderSerializer}.
@@ -56,27 +56,28 @@ public class DefaultHeaderDeserializer implements HeaderDeserializer, DefaultHea
   /**
    * Callback from LazyHeaderListMap.
    * @param src position should be the beginning of the repeated section, limit() should be the end of that section.
+   * @param mapBuilder a function that will consume the new headers as they are deserialized.
    */
-  public static void parseHeader(ByteBuffer src, Map<String, byte[]> headerMap) {
+  static void parseHeader(ByteBuffer src, BiConsumer<String, byte[]> mapBuilder) {
     CharsetDecoder decoder = StandardCharsets.UTF_8.newDecoder();
-    CharBuffer charBuffer = CharBuffer.allocate(HeaderKeySpace.MAX_KEY_LENGTH);
+    CharBuffer charBuffer = CharBuffer.allocate(HeaderUtils.MAX_KEY_LENGTH);
     int originalLimit = src.limit();
     while (src.hasRemaining()) {
       byte headerKeySize = src.get();
       src.limit(src.position() + headerKeySize);
       String headerKey = decodeHeaderKey(src, decoder, charBuffer);
-      HeaderKeySpace.validateHeaderKey(headerKey);
+      HeaderUtils.validateHeaderKey(headerKey);
       src.limit(originalLimit);
       int headerValueLength = src.getInt();
       byte[] headerValue = new byte[headerValueLength];
       src.get(headerValue);
-      headerMap.put(headerKey, headerValue);
+      mapBuilder.accept(headerKey, headerValue);
     }
   }
 
   private static String decodeHeaderKey(ByteBuffer src, CharsetDecoder decoder, CharBuffer charBuffer) {
     charBuffer.position(0);
-    charBuffer.limit(HeaderKeySpace.MAX_KEY_LENGTH);
+    charBuffer.limit(HeaderUtils.MAX_KEY_LENGTH);
     decoder.reset();
     CoderResult coderResult = decoder.decode(src, charBuffer, true);
     throwExceptionOnBadEncoding(coderResult);

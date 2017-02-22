@@ -7,6 +7,7 @@ package com.linkedin.kafka.clients.consumer;
 import com.linkedin.kafka.clients.utils.DefaultHeaderDeserializer;
 import com.linkedin.kafka.clients.utils.DefaultHeaderSerializer;
 import com.linkedin.kafka.clients.utils.HeaderDeserializer;
+import com.linkedin.kafka.clients.utils.LazyHeaderListMap;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -45,7 +46,7 @@ public class LazyHeaderListMapTest {
     Set<String> expectedKeys = new HashSet<>();
     expectedKeys.add("header.0");
     expectedKeys.add("header.1");
-    
+
     Set<String> actualKeys = new HashSet<>();
     actualKeys.add(keyIterator.next());
     actualKeys.add(keyIterator.next());

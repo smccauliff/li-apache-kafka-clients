@@ -6,7 +6,7 @@ package com.linkedin.kafka.clients.largemessage;
 
 import com.linkedin.kafka.clients.consumer.ConsumerRecordsProcessor;
 import com.linkedin.kafka.clients.consumer.ExtensibleConsumerRecord;
-import com.linkedin.kafka.clients.utils.HeaderKeySpace;
+import com.linkedin.kafka.clients.utils.HeaderUtils;
 import com.linkedin.kafka.clients.largemessage.errors.OffsetNotTrackedException;
 import com.linkedin.kafka.clients.producer.ExtensibleProducerRecord;
 import com.linkedin.kafka.clients.utils.TestUtils;
@@ -54,7 +54,7 @@ public class ConsumerRecordsProcessorTest {
         TestUtils.createLargeMessageSegment(UUID.randomUUID(), 0, 2, 20, 10);
     ExtensibleConsumerRecord<byte[], byte[]> consumerRecord1 =
         new ExtensibleConsumerRecord<>("topic", 0, 1, 0L, TimestampType.CREATE_TIME, 0, 0, 0, "key".getBytes(), segment.segmentArray());
-    consumerRecord1.header(HeaderKeySpace.LARGE_MESSAGE_SEGMENT_HEADER, segment.segmentHeader());
+    consumerRecord1.header(HeaderUtils.LARGE_MESSAGE_SEGMENT_HEADER, segment.segmentHeader());
 
     // Construct the consumer records.
     List<ExtensibleConsumerRecord<byte[], byte[]>> recordList = new ArrayList<>();

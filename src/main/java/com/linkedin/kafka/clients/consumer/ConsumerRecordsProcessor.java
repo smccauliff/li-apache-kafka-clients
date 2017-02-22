@@ -6,7 +6,7 @@ package com.linkedin.kafka.clients.consumer;
 
 import com.linkedin.kafka.clients.largemessage.DeliveredMessageOffsetTracker;
 import com.linkedin.kafka.clients.largemessage.MessageAssembler;
-import com.linkedin.kafka.clients.utils.HeaderKeySpace;
+import com.linkedin.kafka.clients.utils.HeaderUtils;
 import com.linkedin.kafka.clients.utils.LiKafkaClientsUtils;
 import java.util.Collection;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
@@ -362,7 +362,7 @@ public class ConsumerRecordsProcessor {
         key, assembledResult.messageBytes());
     //TODO: checksums recomputed?
     largeMessageRecord.copyHeadersFrom(srcRecord);
-    largeMessageRecord.removeHeader(HeaderKeySpace.LARGE_MESSAGE_SEGMENT_HEADER);
+    largeMessageRecord.removeHeader(HeaderUtils.LARGE_MESSAGE_SEGMENT_HEADER);
 
     return largeMessageRecord;
   }

@@ -52,7 +52,7 @@ public interface DefaultHeaderSerde {
     int utf8Length = 0;
     for (int i = 0; i < stringLength; i++) {
       char c = s.charAt(i);
-      if (c < 0xff) {
+      if (c < 0x80) {
         utf8Length++;
       } else if (c < 0x0800) {
         utf8Length += 2;

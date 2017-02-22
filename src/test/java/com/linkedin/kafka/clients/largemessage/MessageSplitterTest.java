@@ -5,7 +5,7 @@
 package com.linkedin.kafka.clients.largemessage;
 
 import com.linkedin.kafka.clients.consumer.ExtensibleConsumerRecord;
-import com.linkedin.kafka.clients.utils.HeaderKeySpace;
+import com.linkedin.kafka.clients.utils.HeaderUtils;
 import com.linkedin.kafka.clients.producer.ExtensibleProducerRecord;
 import com.linkedin.kafka.clients.utils.TestUtils;
 import com.linkedin.kafka.clients.utils.UUIDFactory;
@@ -59,7 +59,7 @@ public class MessageSplitterTest {
     for (ExtensibleProducerRecord<byte[], byte[]> splitRecord : records) {
       ExtensibleConsumerRecord<byte[], byte[]> splitConsumerRecord = TestUtils.producerRecordToConsumerRecord(splitRecord,
           expectedSequenceNumber, expectedSequenceNumber, null, 0, 0);
-      totalHeadersSize += splitRecord.header(HeaderKeySpace.LARGE_MESSAGE_SEGMENT_HEADER).length + 8 + 1 + 4 + 4 + 4;
+      totalHeadersSize += splitRecord.header(HeaderUtils.LARGE_MESSAGE_SEGMENT_HEADER).length + 8 + 1 + 4 + 4 + 4;
       assembledMessage = assembler.assemble(tp, expectedSequenceNumber, splitConsumerRecord);
       if (expectedSequenceNumber != 4) {
         assertNull(assembledMessage.messageBytes());
@@ -67,7 +67,7 @@ public class MessageSplitterTest {
 
       // Check that each segment looks good
       LargeMessageSegment segment =
-          new LargeMessageSegment(splitConsumerRecord.header(HeaderKeySpace.LARGE_MESSAGE_SEGMENT_HEADER), ByteBuffer.wrap(splitConsumerRecord.value()));
+          new LargeMessageSegment(splitConsumerRecord.header(HeaderUtils.LARGE_MESSAGE_SEGMENT_HEADER), ByteBuffer.wrap(splitConsumerRecord.value()));
       assertEquals(segment.messageId(), id, "messageId should match.");
       assertEquals(segment.numberOfSegments(), 5, "number of segments should be 5");
       assertEquals(segment.originalValueSize(), serializedMessage.length, "original value size should the same");

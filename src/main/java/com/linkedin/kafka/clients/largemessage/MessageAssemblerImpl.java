@@ -5,7 +5,7 @@
 package com.linkedin.kafka.clients.largemessage;
 
 import com.linkedin.kafka.clients.consumer.ExtensibleConsumerRecord;
-import com.linkedin.kafka.clients.utils.HeaderKeySpace;
+import com.linkedin.kafka.clients.utils.HeaderUtils;
 import java.nio.ByteBuffer;
 import org.apache.kafka.common.TopicPartition;
 import org.slf4j.Logger;
@@ -29,12 +29,12 @@ public class MessageAssemblerImpl implements MessageAssembler {
 
   @Override
   public AssembleResult assemble(TopicPartition tp, long offset, ExtensibleConsumerRecord<byte[], byte[]> segmentRecord) {
-    if (segmentRecord.header(HeaderKeySpace.LARGE_MESSAGE_SEGMENT_HEADER) == null) {
+    if (segmentRecord.header(HeaderUtils.LARGE_MESSAGE_SEGMENT_HEADER) == null) {
       return null;
     }
 
     LargeMessageSegment segment =
-      new LargeMessageSegment(segmentRecord.header(HeaderKeySpace.LARGE_MESSAGE_SEGMENT_HEADER), ByteBuffer.wrap(segmentRecord.value()));
+      new LargeMessageSegment(segmentRecord.header(HeaderUtils.LARGE_MESSAGE_SEGMENT_HEADER), ByteBuffer.wrap(segmentRecord.value()));
       // Return immediately if it is a single segment message.
     if (segment.numberOfSegments() == 1) {
       return new AssembleResult(segment.segmentArray(), offset, offset, segment.originalKeyWasNull());

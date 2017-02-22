@@ -4,7 +4,8 @@
  */
 package com.linkedin.kafka.clients.consumer;
 
-import com.linkedin.kafka.clients.utils.HeaderKeySpace;
+import com.linkedin.kafka.clients.utils.HeaderUtils;
+import com.linkedin.kafka.clients.utils.LazyHeaderListMap;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -17,8 +18,9 @@ import org.apache.kafka.common.record.TimestampType;
  * record.  The keys are Integer, the values are byte[]. Header key, value pairs are nominally set on the
  * {@link com.linkedin.kafka.clients.producer.ExtensibleProducerRecord}, but can also set after calling
  * {@link org.apache.kafka.clients.consumer.Consumer#poll(long)} by calling {@link #header(String, byte[])}.
- * {@link com.linkedin.kafka.clients.utils.HeaderKeySpace} contains suggestions for how to partition the header key into
- * intervals.  Header keys must be non-negative.  Headers live in a separate space from the underlying Kafka protocol.
+ * {@link HeaderUtils} contains suggestions for how to partition the header key into
+ * intervals.  Header keys must be non-null, non-zero length strings that can be encoded into a utf-8 string.  Headers
+ * live in a separate space from the underlying Kafka protocol.
  * </p>
  */
 public class ExtensibleConsumerRecord<K, V> extends ConsumerRecord<K, V> {
@@ -37,7 +39,7 @@ public class ExtensibleConsumerRecord<K, V> extends ConsumerRecord<K, V> {
 
   /**
    * Get the header value associated with the specified header key.  This method is not thread safe.
-   * @param headerKey non-negative
+   * @param headerKey non-null, non-zero length string that can be encoded into a utf-8 string
    * @return returns null if the headerKey does not exist or if this record does not have have headers.
    */
   public byte[] header(String headerKey) {
@@ -51,11 +53,11 @@ public class ExtensibleConsumerRecord<K, V> extends ConsumerRecord<K, V> {
   /**
    * This is here so that consumers can set a header key-value pair if it was not set on the producer side.  If the header
    * exists already then the header value is updated.  This method is not thread safe.
-   * @param headerKey non-negative
+   * @param headerKey non-null, non-zero length string that can be encoded into a utf-8 string
    * @param value non-null
    */
   public void header(String headerKey, byte[] value) {
-    HeaderKeySpace.validateHeaderKey(headerKey);
+    HeaderUtils.validateHeaderKey(headerKey);
 
     if (headers == null) {
       headers = new LazyHeaderListMap();
@@ -67,7 +69,7 @@ public class ExtensibleConsumerRecord<K, V> extends ConsumerRecord<K, V> {
   /**
    * Gets the set of all header keys set on this record.  This may not be implemented efficiently.  This method is not
    * thread safe.
-   * @return non-null
+   * @return non-null set of header keys
    */
   public Set<String> headerKeys() {
     if (headers == null) {
