@@ -63,7 +63,7 @@ public class TestUtils {
         new ExtensibleConsumerRecord<>(producerRecord.topic(), producerRecord.partition(), offset, timestamp,
             timestampType, 0, serializedKeySize, serializedValueSize, producerRecord.key(), producerRecord.value());
 
-    for (Integer headerKey : producerRecord.headerKeys()) {
+    for (String headerKey : producerRecord.headerKeys()) {
       consumerRecord.header(headerKey, producerRecord.header(headerKey));
     }
 

@@ -23,14 +23,14 @@ import java.util.Set;
  *  This map does not check for duplicates in the incoming ByteBuffer.
  *
  */
-public class LazyHeaderListMap implements Map<Integer, byte[]> {
+public class LazyHeaderListMap implements Map<String,byte[]> {
 
 
-  private static final class Entry implements Map.Entry<Integer, byte[]> {
-    private final Integer key;
+  private static final class Entry implements Map.Entry<String, byte[]> {
+    private final String key;
     private final byte[] value;
 
-    public Entry(Integer key, byte[] value) {
+    public Entry(String key, byte[] value) {
       if (key == null) {
         throw new NullPointerException("key must not be null");
       }
@@ -43,7 +43,7 @@ public class LazyHeaderListMap implements Map<Integer, byte[]> {
     }
 
     @Override
-    public Integer getKey() {
+    public String getKey() {
       return key;
     }
 
@@ -58,7 +58,7 @@ public class LazyHeaderListMap implements Map<Integer, byte[]> {
     }
   };
 
-  private List<Map.Entry<Integer, byte[]>> backingList;
+  private List<Map.Entry<String, byte[]>> backingList;
 
   private ByteBuffer headerSource;
 
@@ -66,7 +66,7 @@ public class LazyHeaderListMap implements Map<Integer, byte[]> {
     this((ByteBuffer) null);
   }
 
-  public LazyHeaderListMap(Map<Integer, byte[]> other) {
+  public LazyHeaderListMap(Map<String, byte[]> other) {
     if (other instanceof LazyHeaderListMap) {
       LazyHeaderListMap otherLazyHeaderListMap = (LazyHeaderListMap) other;
       otherLazyHeaderListMap.lazyInit();
@@ -109,8 +109,8 @@ public class LazyHeaderListMap implements Map<Integer, byte[]> {
    * @return true if we are duplicate free.
    */
   private boolean checkDuplicates() {
-    Set<Integer> keysSeen = new HashSet<>(backingList.size() * 2);
-    for (Map.Entry<Integer, byte[]> entry  : backingList) {
+    Set<String> keysSeen = new HashSet<>(backingList.size() * 2);
+    for (Map.Entry<String, byte[]> entry  : backingList) {
       if (keysSeen.contains(entry.getKey())) {
         return false;
       }
@@ -171,7 +171,7 @@ public class LazyHeaderListMap implements Map<Integer, byte[]> {
    * @return  The previous value stored with the key or null if there was no such value.
    */
   @Override
-  public byte[] put(Integer key, byte[] value) {
+  public byte[] put(String key, byte[] value) {
     lazyInit();
 
     if (key == null) {
@@ -183,7 +183,7 @@ public class LazyHeaderListMap implements Map<Integer, byte[]> {
 
     for (int i = 0; i < backingList.size(); i++) {
       if (backingList.get(i).getKey().equals(key)) {
-        byte[] previousValue = backingList.get(key).getValue();
+        byte[] previousValue = backingList.get(i).getValue();
         backingList.set(i, new Entry(key, value));
         return previousValue;
       }
@@ -218,8 +218,8 @@ public class LazyHeaderListMap implements Map<Integer, byte[]> {
   }
 
   @Override
-  public void putAll(Map<? extends Integer, ? extends byte[]> m) {
-    for (Map.Entry<? extends Integer, ? extends byte[]> otherEntry : m.entrySet()) {
+  public void putAll(Map<? extends String, ? extends byte[]> m) {
+    for (Map.Entry<? extends String, ? extends byte[]> otherEntry : m.entrySet()) {
       put(otherEntry.getKey(), otherEntry.getValue());
     }
   }
@@ -231,10 +231,10 @@ public class LazyHeaderListMap implements Map<Integer, byte[]> {
   }
 
   @Override
-  public Set<Integer> keySet() {
+  public Set<String> keySet() {
     lazyInit();
 
-    return new Set<Integer>() {
+    return new Set<String>() {
 
       @Override
       public int size() {
@@ -252,9 +252,9 @@ public class LazyHeaderListMap implements Map<Integer, byte[]> {
       }
 
       @Override
-      public Iterator<Integer> iterator() {
+      public Iterator<String> iterator() {
 
-        return new Iterator<Integer>() {
+        return new Iterator<String>() {
           final int backingListSizeAtInitializationTime = backingList.size();
           int nextIndex = 0;
 
@@ -268,7 +268,7 @@ public class LazyHeaderListMap implements Map<Integer, byte[]> {
           }
 
           @Override
-          public Integer next() {
+          public String next() {
             if (backingList.size() != backingListSizeAtInitializationTime) {
               throw new ConcurrentModificationException();
             }
@@ -288,7 +288,7 @@ public class LazyHeaderListMap implements Map<Integer, byte[]> {
       }
 
       @Override
-      public boolean add(Integer integer) {
+      public boolean add(String String) {
         throw new UnsupportedOperationException();
       }
 
@@ -308,7 +308,7 @@ public class LazyHeaderListMap implements Map<Integer, byte[]> {
       }
 
       @Override
-      public boolean addAll(Collection<? extends Integer> c) {
+      public boolean addAll(Collection<? extends String> c) {
         throw new UnsupportedOperationException();
       }
 
@@ -427,7 +427,7 @@ public class LazyHeaderListMap implements Map<Integer, byte[]> {
   }
 
   @Override
-  public Set<Map.Entry<Integer, byte[]>> entrySet() {
+  public Set<Map.Entry<String, byte[]>> entrySet() {
     throw new UnsupportedOperationException();
   }
 

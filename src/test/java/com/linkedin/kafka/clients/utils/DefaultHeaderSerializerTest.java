@@ -54,10 +54,13 @@ public class DefaultHeaderSerializerTest {
   public void headerSerializationTest() {
     DefaultHeaderSerializer headerSerializer = new DefaultHeaderSerializer();
     ByteBuffer bbuf = ByteBuffer.allocate(1024*16);
-    Map<Integer, byte[]> headers = new HashMap<>();
+    Map<String, byte[]> headers = new HashMap<>();
     String headerValue = "header-value";
-    headers.put(42, headerValue.getBytes());
-    assertEquals(headerSerializer.serializedHeaderSize(headers), 8 + 1 + 4 + 4 + 4 + 12);
+    String headerKey = "header-key";
+    headers.put(headerKey, headerValue.getBytes());
+    assertEquals(headerSerializer.serializedHeaderSize(headers),
+        8 /*magic*/+ 1 /*ver*/+ 4/*totallen*/ + 1 /*header-key len*/ + headerKey.length() +  4 /* value len */ +
+            headerValue.length());
     headerSerializer.serializeHeader(bbuf, headers, false);
     bbuf.flip();
     assertEquals(bbuf.remaining(), headerSerializer.serializedHeaderSize(headers));
@@ -66,6 +69,6 @@ public class DefaultHeaderSerializerTest {
     HeaderDeserializer.DeserializeResult deserializeResult = headerDeserializer.deserializeHeader(bbuf);
     assertFalse(deserializeResult.value().hasRemaining());
     assertEquals(deserializeResult.headers().size(), 1);
-    assertEquals(deserializeResult.headers().get(42), headerValue.getBytes());
+    assertEquals(deserializeResult.headers().get(headerKey), headerValue.getBytes());
   }
 }

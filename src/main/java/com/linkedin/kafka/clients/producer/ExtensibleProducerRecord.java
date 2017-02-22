@@ -23,14 +23,14 @@ import org.apache.kafka.clients.producer.ProducerRecord;
  * <p>{@link com.linkedin.kafka.clients.utils.HeaderKeySpace} contains suggestions for how to partition the header key into
  * intervals.  Header keys must be non-negative.  Headers live in a separate space from the underlying Kafka protocol.
  * </p>
- * <p> A header can be added to a producer record by calling {@link #header(int, byte[])}.  This implies that the
+ * <p> A header can be added to a producer record by calling {@link #header(String, byte[])}.  This implies that the
  * user of the producer record should not modify the record after
  * {@link com.linkedin.kafka.clients.producer.LiKafkaProducer#send} has been called.
  * </p>
  */
 public class ExtensibleProducerRecord<K, V> extends ProducerRecord<K, V> {
 
-  private Map<Integer, byte[]> headers;
+  private Map<String, byte[]> headers;
 
   /**
    * Creates a record with a specified timestamp to be sent to a specified topic and partition
@@ -51,7 +51,7 @@ public class ExtensibleProducerRecord<K, V> extends ProducerRecord<K, V> {
    * @param headerKey
    * @return returns null if this record does not have headers of the header is not present
    */
-  public byte[] header(int headerKey) {
+  public byte[] header(String headerKey) {
     HeaderKeySpace.validateHeaderKey(headerKey);
 
     if (headers == null) {
@@ -65,7 +65,7 @@ public class ExtensibleProducerRecord<K, V> extends ProducerRecord<K, V> {
    * @param headerKey non-negative
    * @param headerValue non-null
    */
-  public void header(int headerKey, byte[] headerValue) {
+  public void header(String headerKey, byte[] headerValue) {
     HeaderKeySpace.validateHeaderKey(headerKey);
 
     if (headerValue == null) {
@@ -92,7 +92,7 @@ public class ExtensibleProducerRecord<K, V> extends ProducerRecord<K, V> {
    * A set of the header keys currently associated with this record.  This method is not thread safe.
    * @return non-null
    */
-  public Set<Integer> headerKeys() {
+  public Set<String> headerKeys() {
     if (headers == null) {
       return Collections.emptySet();
     }
@@ -112,7 +112,7 @@ public class ExtensibleProducerRecord<K, V> extends ProducerRecord<K, V> {
    *
    * @return this may return null
    */
-  Map<Integer, byte[]> headers() {
+  Map<String, byte[]> headers() {
     return headers;
   }
 

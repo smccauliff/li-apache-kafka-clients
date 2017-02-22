@@ -53,7 +53,7 @@ public class DocumentationTest extends AbstractKafkaClientsIntegrationTestHarnes
     Producer<String, String> producer = new LiKafkaProducerImpl<>(producerProps);
     ExtensibleProducerRecord<String, String> xRecord =
         new ExtensibleProducerRecord<>(topic, 0, 0L, "key", "value");
-    xRecord.header(HeaderKeySpace.PUBLIC_UNASSIGNED_START, new byte[] { 5, 6, 7, 7, 9});
+    xRecord.header("header-key", new byte[] { 5, 6, 7, 7, 9});
     Future<RecordMetadata> future = producer.send(xRecord);
     future.get();
 
@@ -69,7 +69,7 @@ public class DocumentationTest extends AbstractKafkaClientsIntegrationTestHarnes
     for (ConsumerRecord<String, String> consumerRecord : consumerRecords) {
       ExtensibleConsumerRecord<String, String> consumerRecordWithHeaders =
           (ExtensibleConsumerRecord<String, String>) consumerRecord;
-      byte[] headerValue = consumerRecordWithHeaders.header(HeaderKeySpace.PUBLIC_UNASSIGNED_START);
+      byte[] headerValue = consumerRecordWithHeaders.header("header-key");
       //do something with headerValue
     }
   }

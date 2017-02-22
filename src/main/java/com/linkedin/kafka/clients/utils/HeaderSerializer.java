@@ -30,7 +30,7 @@ public interface HeaderSerializer extends Configurable {
    * @param nullValue When true the user value of the message is actually null.  This is here so the header format
    *                    may preserve the null when unpacking the user value.
    */
-  void serializeHeader(ByteBuffer dest, Map<Integer, byte[]> headers, boolean nullValue);
+  void serializeHeader(ByteBuffer dest, Map<String, byte[]> headers, boolean nullValue);
 
   /**
    * The serialized size of all the headers.  The producer may optionally not serialize an empty header in order to
@@ -39,5 +39,5 @@ public interface HeaderSerializer extends Configurable {
    * @param headers This may be null
    * @return non-negative, if headers is null this may still return a number greater than zero.
    */
-  int serializedHeaderSize(Map<Integer, byte[]> headers);
+  int serializedHeaderSize(Map<String, byte[]> headers);
 }

@@ -16,13 +16,13 @@ import org.apache.kafka.common.record.TimestampType;
  * This extends the Kafka ConsumerRecord with headers which are a set of key-value pairs that can be associated with a
  * record.  The keys are Integer, the values are byte[]. Header key, value pairs are nominally set on the
  * {@link com.linkedin.kafka.clients.producer.ExtensibleProducerRecord}, but can also set after calling
- * {@link org.apache.kafka.clients.consumer.Consumer#poll(long)} by calling {@link #header(int, byte[])}.
+ * {@link org.apache.kafka.clients.consumer.Consumer#poll(long)} by calling {@link #header(String, byte[])}.
  * {@link com.linkedin.kafka.clients.utils.HeaderKeySpace} contains suggestions for how to partition the header key into
  * intervals.  Header keys must be non-negative.  Headers live in a separate space from the underlying Kafka protocol.
  * </p>
  */
 public class ExtensibleConsumerRecord<K, V> extends ConsumerRecord<K, V> {
-  private volatile Map<Integer, byte[]> headers;
+  private volatile Map<String, byte[]> headers;
 
   public ExtensibleConsumerRecord(String topic, int partition, long offset, long timestamp, TimestampType timestampType,
       long checksum, int serializedKeySize, int serializedValueSize, K key, V value) {
@@ -30,7 +30,7 @@ public class ExtensibleConsumerRecord<K, V> extends ConsumerRecord<K, V> {
   }
 
   ExtensibleConsumerRecord(String topic, int partition, long offset, long timestamp, TimestampType timestampType,
-      long checksum, int serializedKeySize, int serializedValueSize, K key, V value, Map<Integer, byte[]> headers) {
+      long checksum, int serializedKeySize, int serializedValueSize, K key, V value, Map<String, byte[]> headers) {
     super(topic, partition, offset, timestamp, timestampType, checksum, serializedKeySize, serializedValueSize, key, value);
     this.headers = headers;
   }
@@ -40,7 +40,7 @@ public class ExtensibleConsumerRecord<K, V> extends ConsumerRecord<K, V> {
    * @param headerKey non-negative
    * @return returns null if the headerKey does not exist or if this record does not have have headers.
    */
-  public byte[] header(int headerKey) {
+  public byte[] header(String headerKey) {
     if (headers == null) {
       return null;
     }
@@ -54,7 +54,7 @@ public class ExtensibleConsumerRecord<K, V> extends ConsumerRecord<K, V> {
    * @param headerKey non-negative
    * @param value non-null
    */
-  public void header(int headerKey, byte[] value) {
+  public void header(String headerKey, byte[] value) {
     HeaderKeySpace.validateHeaderKey(headerKey);
 
     if (headers == null) {
@@ -69,7 +69,7 @@ public class ExtensibleConsumerRecord<K, V> extends ConsumerRecord<K, V> {
    * thread safe.
    * @return non-null
    */
-  public Set<Integer> headerKeys() {
+  public Set<String> headerKeys() {
     if (headers == null) {
       return Collections.emptySet();
     }
@@ -81,14 +81,14 @@ public class ExtensibleConsumerRecord<K, V> extends ConsumerRecord<K, V> {
    * Removes the header with the specified key from this consumer record.  This method is not thread safe.
    * @return The previously mapped value else this returns null.
    */
-  public byte[] removeHeader(int headerKey)  {
+  public byte[] removeHeader(String headerKey)  {
     if (headers == null) {
       return null;
     }
     return headers.remove(headerKey);
   }
 
-  Map<Integer, byte[]> headers() {
+  Map<String, byte[]> headers() {
     return headers;
   }
 

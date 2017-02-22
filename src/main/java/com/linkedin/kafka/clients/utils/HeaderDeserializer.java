@@ -26,10 +26,10 @@ public interface HeaderDeserializer extends Configurable {
   DeserializeResult deserializeHeader(ByteBuffer src);
 
   class DeserializeResult {
-    private Map<Integer, byte[]> _headers;
+    private Map<String, byte[]> _headers;
     private ByteBuffer _value;
 
-    public DeserializeResult(Map<Integer, byte[]> headers, ByteBuffer value) {
+    public DeserializeResult(Map<String, byte[]> headers, ByteBuffer value) {
       this._headers = headers;
       this._value = value;
     }
@@ -38,7 +38,7 @@ public interface HeaderDeserializer extends Configurable {
      *
      * @return This may return null if the message did not have headers.
      */
-    public Map<Integer, byte[]> headers() {
+    public Map<String, byte[]> headers() {
       return _headers;
     }
 

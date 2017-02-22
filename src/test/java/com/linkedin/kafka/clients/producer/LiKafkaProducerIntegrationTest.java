@@ -6,7 +6,6 @@ See License in the project root for license information.
 package com.linkedin.kafka.clients.producer;
 
 import com.linkedin.kafka.clients.consumer.ExtensibleConsumerRecord;
-import com.linkedin.kafka.clients.utils.HeaderKeySpace;
 import com.linkedin.kafka.clients.consumer.LiKafkaConsumer;
 import com.linkedin.kafka.clients.consumer.LiKafkaConsumerConfig;
 import com.linkedin.kafka.clients.utils.tests.AbstractKafkaClientsIntegrationTestHarness;
@@ -107,7 +106,7 @@ public class LiKafkaProducerIntegrationTest extends AbstractKafkaClientsIntegrat
     for (int i = 0; i < RECORD_COUNT; ++i) {
       String value = Integer.toString(i);
       ExtensibleProducerRecord producerRecord = new ExtensibleProducerRecord<>(tempTopic, null, null, null, value);
-      producerRecord.header(HeaderKeySpace.PUBLIC_UNASSIGNED_START, EXPECTED_HEADER_VALUE);
+      producerRecord.header("header-key", EXPECTED_HEADER_VALUE);
       producer.send(producerRecord);
     }
 
@@ -128,7 +127,7 @@ public class LiKafkaProducerIntegrationTest extends AbstractKafkaClientsIntegrat
         int index = Integer.parseInt(record.value());
         counts.set(index);
         messageCount++;
-        byte[] headerValue = xRecord.header(HeaderKeySpace.PUBLIC_UNASSIGNED_START);
+        byte[] headerValue = xRecord.header("header-key");
         assertEquals(headerValue, EXPECTED_HEADER_VALUE);
       }
     }
@@ -153,7 +152,7 @@ public class LiKafkaProducerIntegrationTest extends AbstractKafkaClientsIntegrat
     LiKafkaProducer<String, String> producer = createProducer(props);
     String topic = "topic-A";
 
-    int headerKey = HeaderKeySpace.PUBLIC_UNASSIGNED_START + 1;
+    String headerKey = "somewhat-long-header key with spaces";
 
     String smallValue = com.linkedin.kafka.clients.utils.TestUtils.getRandomString(10);
     String largeValue = com.linkedin.kafka.clients.utils.TestUtils.getRandomString(1024 * 1024);
@@ -233,7 +232,7 @@ public class LiKafkaProducerIntegrationTest extends AbstractKafkaClientsIntegrat
     ProducerRecord<String, String> producerRecord = new ProducerRecord<>(topic, key, null);
     ExtensibleProducerRecord<String, String> xProducerRecord = new ExtensibleProducerRecord<>(topic, null, null, key, null);
     ExtensibleProducerRecord<String, String> xProducerRecordWithHeaders = new ExtensibleProducerRecord<>(topic, null, null, key, null);
-    xProducerRecordWithHeaders.header(HeaderKeySpace.PUBLIC_UNASSIGNED_START, headerValue);
+    xProducerRecordWithHeaders.header("header-key", headerValue);
 
     Properties props = new Properties();
     props.setProperty(ProducerConfig.ACKS_CONFIG, "-1");
@@ -263,12 +262,12 @@ public class LiKafkaProducerIntegrationTest extends AbstractKafkaClientsIntegrat
         switch (messageCount) {
           case 0: // regular producer record with null value
           case 1: // extensible producer record with null value
-            assertNull(xConsumerRecord.header(HeaderKeySpace.PUBLIC_UNASSIGNED_START));
+            assertNull(xConsumerRecord.header("header-key"));
             assertEquals(xConsumerRecord.key(), key);
             assertNull(xConsumerRecord.value());
             break;
           case 2: // extensible producer record with headers
-            assertEquals(xConsumerRecord.header(HeaderKeySpace.PUBLIC_UNASSIGNED_START), headerValue);
+            assertEquals(xConsumerRecord.header("header-key"), headerValue);
             assertEquals(xConsumerRecord.key(), key);
             assertNull(xConsumerRecord.value());
             break;

@@ -3,8 +3,7 @@
  */
 package com.linkedin.kafka.clients.utils;
 /**
- * This determines the header key range used for various purposes.
- *
+ * Header key related constants and utilities.
  */
 public class HeaderKeySpace {
 
@@ -12,26 +11,15 @@ public class HeaderKeySpace {
     //This does nothing
   }
 
-  public static final int LIKAFKA_PRIVATE_START = 0;
+  public static final int MAX_KEY_LENGTH = Byte.MAX_VALUE;
 
-  /**
-   * A segment of a large message.
-   */
-  public static final int LARGE_MESSAGE_SEGMENT_HEADER = 1;
+  public static final String LARGE_MESSAGE_SEGMENT_HEADER = "li.lms";
 
-  public static final int PUBLIC_ASSIGNED_START = 10_000;
-
-  public static final int PUBLIC_UNASSIGNED_START = 10_000_000;
-
-  public static boolean isKeyValid(int headerKey) {
-    return headerKey >= 0;
+  public static boolean isKeyValid(String headerKey) {
+    return headerKey != null && headerKey.length() < MAX_KEY_LENGTH && headerKey.length() > 0;
   }
 
-  public static boolean isKeyInPrivateRange(int headerKey) {
-    return headerKey >= LIKAFKA_PRIVATE_START && headerKey < PUBLIC_ASSIGNED_START;
-  }
-
-  public static void validateHeaderKey(int headerKey) {
+  public static void validateHeaderKey(String headerKey) {
     if (!isKeyValid(headerKey)) {
       throw new IllegalArgumentException("Invalid header key " + headerKey + ".");
     }

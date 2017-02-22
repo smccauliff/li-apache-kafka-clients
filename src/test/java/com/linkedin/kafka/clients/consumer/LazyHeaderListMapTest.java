@@ -9,8 +9,10 @@ import com.linkedin.kafka.clients.utils.DefaultHeaderSerializer;
 import com.linkedin.kafka.clients.utils.HeaderDeserializer;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertEquals;
@@ -23,9 +25,9 @@ public class LazyHeaderListMapTest {
 
   @Test
   public void lazyParseHeaders() {
-    Map<Integer, byte[]> expected = new HashMap<>();
-    expected.put(0, VALUE_0);
-    expected.put(1, VALUE_1);
+    Map<String, byte[]> expected = new HashMap<>();
+    expected.put("header.0", VALUE_0);
+    expected.put("header.1", VALUE_1);
     DefaultHeaderSerializer headerSerializer = new DefaultHeaderSerializer();
     int sizeBytes = headerSerializer.serializedHeaderSize(expected);
     ByteBuffer serializedHeaders = ByteBuffer.allocate(sizeBytes);
@@ -36,12 +38,18 @@ public class LazyHeaderListMapTest {
     HeaderDeserializer.DeserializeResult deserializeResult = headerDeserializer.deserializeHeader(serializedHeaders);
     LazyHeaderListMap deserializedMap = (LazyHeaderListMap) deserializeResult.headers();
     assertEquals(deserializedMap.size(), 2);
-    assertEquals(deserializedMap.get(0), VALUE_0);
-    assertEquals(deserializedMap.get(1), VALUE_1);
+    assertEquals(deserializedMap.get("header.0"), VALUE_0);
+    assertEquals(deserializedMap.get("header.1"), VALUE_1);
 
-    Iterator<Integer> keyIterator = deserializedMap.keySet().iterator();
-    assertEquals(keyIterator.next().intValue(), 0);
-    assertEquals(keyIterator.next().intValue(), 1);
+    Iterator<String> keyIterator = deserializedMap.keySet().iterator();
+    Set<String> expectedKeys = new HashSet<>();
+    expectedKeys.add("header.0");
+    expectedKeys.add("header.1");
+    
+    Set<String> actualKeys = new HashSet<>();
+    actualKeys.add(keyIterator.next());
+    actualKeys.add(keyIterator.next());
+    assertEquals(actualKeys, expectedKeys);
     assertFalse(keyIterator.hasNext());
   }
 }
